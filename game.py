@@ -1,12 +1,13 @@
 import curses
+import time
 
-def print_board(stdscr, board, cursor_pos):
+def print_board(stdscr, board, cursor_pos, show_cursor):
     stdscr.clear()
     stdscr.addstr("---------\n")
     for row_index, row in enumerate(board):
         stdscr.addstr("| ")
         for col_index, cell in enumerate(row):
-            if cursor_pos == (row_index, col_index):
+            if cursor_pos == (row_index, col_index) and show_cursor:
                 stdscr.addstr("_ ")
             else:
                 stdscr.addstr(f"{cell} ")
@@ -80,9 +81,18 @@ def play_game(stdscr):
     stdscr.nodelay(True)
     stdscr.keypad(True)
 
-    while True:
+    show_cursor = True
 
-        print_board(stdscr, board, cursor_pos)
+    delta_sec = 0
+    current_time = time.time()
+
+    while True:
+        delta_sec = time.time() - current_time
+        if delta_sec > 0.5:
+            current_time = time.time()
+            show_cursor = not show_cursor
+
+        print_board(stdscr, board, cursor_pos, show_cursor)
         stdscr.addstr("Current player: {}\n".format(current_player))
 
         move = get_move(stdscr)
@@ -93,12 +103,12 @@ def play_game(stdscr):
                 board[row][col] = current_player
                 winner = check_winner(board)
                 if winner:
-                    print_board(stdscr, board, cursor_pos)
+                    print_board(stdscr, board, cursor_pos, show_cursor)
                     stdscr.addstr("Player {} wins!\n".format(winner))
                     break
 
                 if is_board_full(board):
-                    print_board(stdscr, board, cursor_pos)
+                    print_board(stdscr, board, cursor_pos, show_cursor)
                     stdscr.addstr("It's a tie!\n")
                     break
 
