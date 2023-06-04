@@ -2,7 +2,7 @@ import curses
 import time
 
 def print_board(stdscr, board, cursor_pos, show_cursor):
-    stdscr.clear()
+    stdscr.erase()
     stdscr.addstr("---------\n")
     for row_index, row in enumerate(board):
         stdscr.addstr("| ")
@@ -105,11 +105,13 @@ def play_game(stdscr):
                 if winner:
                     print_board(stdscr, board, cursor_pos, show_cursor)
                     stdscr.addstr("Player {} wins!\n".format(winner))
+                    stdscr.refresh()
                     break
 
                 if is_board_full(board):
                     print_board(stdscr, board, cursor_pos, show_cursor)
                     stdscr.addstr("It's a tie!\n")
+                    stdscr.refresh()
                     break
 
                 current_player = "O" if current_player == "X" else "X"
@@ -125,6 +127,8 @@ def main(stdscr):
         pass
     stdscr.refresh()
     stdscr.getch()
+
+    time.sleep(5)
 
 
 curses.wrapper(main)
