@@ -22,13 +22,12 @@ class TicTacToeServer:
             print("Client connected:", address)
 
             if len(self.clients) == 2:
-                threading.Thread(target=self.handle_client, args=(self.clients[0],)).start()
-                threading.Thread(target=self.handle_client, args=(self.clients[1],)).start()
+                threading.Thread(target=self.handle_client, args=(self.clients[0], "X")).start()
+                threading.Thread(target=self.handle_client, args=(self.clients[1], "O")).start()
                 break
 
-    def handle_client(self, client_socket):
-        client_socket.sendall(self.current_player.encode())
-        self.current_player = "O" if self.current_player == "X" else "X"
+    def handle_client(self, client_socket, player):
+        client_socket.sendall(player.encode())
 
         try:
             while True:

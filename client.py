@@ -73,6 +73,19 @@ def play_game(stdscr, client_socket):
         print_board(stdscr, board, cursor_pos, show_cursor)
         stdscr.addstr("Curret player: {}\n".format(current_player))
 
+        winner = check_winner(board)
+        if winner:
+            print_board(stdscr, board, cursor_pos, show_cursor)
+            stdscr.addstr("Player {} wins!\n".format(winner))
+            stdscr.refresh()
+            break
+
+        if is_board_full(board):
+            print_board(stdscr, board, cursor_pos, show_cursor)
+            stdscr.addstr("It's a tie!\n")
+            stdscr.refresh()
+            break
+
         move = get_move(stdscr)
 
         if move == "enter":
@@ -99,20 +112,23 @@ def play_game(stdscr, client_socket):
 
 def receive_board_updates(stdscr, client_socket):
     while True:
-        data = client_socket.recv(1024).decode()
-        if data == "exit":
-            break
+        try:
+            data = client_socket.recv(1024).decode()
+            if data == "exit":
+                break
 
-        new_board = [row.split(",") for row in data.split("\n")]
-        new_board = new_board[:3]
+            new_board = [row.split(",") for row in data.split("\n")]
+            new_board = new_board[:3]
 
-        for i in range(3):
-            for j in range(3):
-                board[i][j] = new_board[i][j]
+            for i in range(3):
+                for j in range(3):
+                    board[i][j] = new_board[i][j]
 
-        stdscr.clear() 
-        print_board(stdscr, board, (0, 0), True)
-        stdscr.refresh()
+            stdscr.clear() 
+            print_board(stdscr, board, (0, 0), True)
+            stdscr.refresh()
+        except:
+            pass
 
 
 def check_winner(board):
@@ -148,6 +164,7 @@ def main(stdscr):
         client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         client_socket.connect(("localhost", 9001))
         play_game(stdscr, client_socket)
+        time.sleep(20)
     except socket.error as e:
         print("Socket error:", e)
     finally:
