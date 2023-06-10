@@ -3,6 +3,7 @@ import curses
 import threading
 import time
 
+board = None
 
 def print_board(stdscr, board, cursor_pos, show_cursor):
     stdscr.clear()
@@ -51,7 +52,7 @@ def play_game(stdscr, client_socket):
     global board
     board = [[" " for _ in range(3)] for _ in range(3)]
     cursor_pos = (0, 0)
-    current_player = "X"
+    current_player = client_socket.recv(1024).decode()
     show_cursor = True
 
     stdscr.nodelay(True)
@@ -60,7 +61,7 @@ def play_game(stdscr, client_socket):
     prev_time = time.time()
     delta_sec = 0
 
-    threading.Thread(target=receive_board_updates, args=(stdscr, client_socket, board)).start()
+    threading.Thread(target=receive_board_updates, args=(stdscr, client_socket)).start()
 
     while True:
         delta_sec += time.time() - prev_time
@@ -77,8 +78,8 @@ def play_game(stdscr, client_socket):
         if move == "enter":
             row, col = cursor_pos
             if board[row][col] == " ":
-                board[row][col] = current_player
-                client_socket.sendall("{},{}".format(row, col).encode())
+                # board[row][col] = current_player
+                client_socket.sendall("{},{},{}".format(current_player, row, col).encode())
 
                 winner = check_winner(board)
                 if winner:
@@ -93,11 +94,10 @@ def play_game(stdscr, client_socket):
                     stdscr.refresh()
                     break
 
-                current_player = "O" if current_player == "X" else "X"
         else:
             cursor_pos = move_cursor(cursor_pos, move)
 
-def receive_board_updates(stdscr, client_socket, board):
+def receive_board_updates(stdscr, client_socket):
     while True:
         data = client_socket.recv(1024).decode()
         if data == "exit":

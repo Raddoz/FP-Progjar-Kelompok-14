@@ -27,14 +27,21 @@ class TicTacToeServer:
                 break
 
     def handle_client(self, client_socket):
+        client_socket.sendall(self.current_player.encode())
+        self.current_player = "O" if self.current_player == "X" else "X"
+
         try:
             while True:
                 move = client_socket.recv(1024).decode()
                 if move == "exit":
                     break
 
-                row, col = map(int, move.split(","))
-                if self.board[row][col] == " ":
+                player, row, col =  move.split(",") 
+                row, col = int(row), int(col)
+
+                print("Player {} moved to ({}, {}) {}".format(player, row, col, self.current_player))
+
+                if self.board[row][col] == " " and player == self.current_player:
                     self.board[row][col] = self.current_player
                     self.current_player = "O" if self.current_player == "X" else "X"
                     self.broadcast_board()
