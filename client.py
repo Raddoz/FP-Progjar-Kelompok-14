@@ -52,6 +52,7 @@ def play_game(stdscr, client_socket):
     global board
     board = [[" " for _ in range(3)] for _ in range(3)]
     cursor_pos = (0, 0)
+    room_number = client_socket.recv(1024).decode()
     current_player = client_socket.recv(1024).decode()
     show_cursor = True
 
@@ -71,7 +72,7 @@ def play_game(stdscr, client_socket):
             delta_sec = 0
             
         print_board(stdscr, board, cursor_pos, show_cursor)
-        stdscr.addstr("Curret player: {}\n".format(current_player))
+        stdscr.addstr("Room {} - Curret player: {}\n".format(room_number, current_player))
 
         winner = check_winner(board)
         if winner:
@@ -126,6 +127,7 @@ def receive_board_updates(stdscr, client_socket):
 
             stdscr.clear() 
             print_board(stdscr, board, (0, 0), True)
+            stdscr.addstr(data)
             stdscr.refresh()
         except:
             pass
