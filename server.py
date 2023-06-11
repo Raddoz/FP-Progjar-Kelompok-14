@@ -1,4 +1,5 @@
 import socket
+import select
 import threading
 import asyncio
 
@@ -47,28 +48,35 @@ class TicTacToeServer:
         self.server_socket.listen(2)
         print("Server started. Waiting for connections...")
 
+        sockets = [self.server_socket]
+
         while True:
-            client_socket, address = self.server_socket.accept()
-            print("Client connected:", address)
+            read_ready, _, _ = select.select(sockets, [], [])
 
-            room_number = self.next_room_number
-            if len(self.game_rooms) == 0 or len(self.game_rooms[-1].clients) == 2:
-                game_room = GameRoom(room_number)
-                self.game_rooms.append(game_room)
+            for socket in read_ready:
+                if socket == self.server_socket:
+                    client_socket, address = socket.accept()    
+                
+                    print("Client connected:", address)
 
-                print("Created new room", room_number)
-            else:
-                game_room = self.game_rooms[-1]
-                self.next_room_number += 1
+                    room_number = self.next_room_number
+                    if len(self.game_rooms) == 0 or len(self.game_rooms[-1].clients) == 2:
+                        game_room = GameRoom(room_number)
+                        self.game_rooms.append(game_room)
 
-                print("Added client to room", room_number)
+                        print("Created new room", room_number)
+                    else:
+                        game_room = self.game_rooms[-1]
+                        self.next_room_number += 1
+
+                        print("Added client to room", room_number)
 
 
-            game_room.add_client(client_socket)
-            client_socket.sendall(str(room_number).encode())
+                    game_room.add_client(client_socket)
+                    client_socket.sendall(str(room_number).encode())
 
-            if len(game_room.clients) == 2:
-                threading.Thread(target=self.handle_game_room, args=(game_room,)).start()
+                    if len(game_room.clients) == 2:
+                        threading.Thread(target=self.handle_game_room, args=(game_room,)).start()
 
     def handle_game_room(self, game_room):
         player_symbols = ["O", "X"]
