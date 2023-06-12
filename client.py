@@ -1,7 +1,9 @@
+import pickle
 import socket
 import curses
 import threading
 import time
+import traceback
 
 board = None
 
@@ -114,22 +116,19 @@ def play_game(stdscr, client_socket):
 def receive_board_updates(stdscr, client_socket):
     while True:
         try:
-            data = client_socket.recv(1024).decode()
-            if data == "exit":
-                break
+            data = client_socket.recv(1024)
 
-            new_board = [row.split(",") for row in data.split("\n")]
-            new_board = new_board[:3]
+            loaded_board = pickle.loads(data)
 
             for i in range(3):
                 for j in range(3):
-                    board[i][j] = new_board[i][j]
+                    board[i][j] = loaded_board[i][j]
 
             stdscr.clear() 
             print_board(stdscr, board, (0, 0), True)
             stdscr.addstr(data)
             stdscr.refresh()
-        except:
+        except Exception as e:
             pass
 
 

@@ -1,3 +1,4 @@
+import pickle
 import socket
 import select
 import threading
@@ -23,7 +24,7 @@ class GameRoom:
             board_str += ",".join(row) + "\n"
 
         for client_socket in self.clients:
-            client_socket.sendall(board_str.encode())
+            client_socket.sendall(pickle.dumps(self.board))
 
             print("Sent board to client in room", self.room_number)
         
